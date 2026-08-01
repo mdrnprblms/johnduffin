@@ -58,7 +58,15 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
     background: var(--bg);
     color: var(--ink);
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    line-height: 1.5;
+    line-height: 1.45;
+    letter-spacing: -0.012em;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.03em;
   }
 
   .site-header {
@@ -73,7 +81,7 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
 
   .brand {
     font-size: 1.5rem;
-    letter-spacing: 0.04em;
+    letter-spacing: -0.02em;
     text-transform: uppercase;
     color: var(--ink);
     text-decoration: none;
@@ -90,7 +98,7 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
     text-decoration: none;
     text-transform: uppercase;
     font-size: 0.85rem;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.01em;
   }
 
   .site-header nav a:hover,

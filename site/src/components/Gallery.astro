@@ -8,101 +8,135 @@ interface Props {
 
 const {artworks} = Astro.props
 
-const CATEGORIES: {label: string; value: Artwork['category'] | 'all'}[] = [
-  {label: 'All', value: 'all'},
+const CATEGORIES: {label: string; value: Artwork['category']}[] = [
   {label: 'Oils', value: 'oils'},
   {label: 'Prints', value: 'prints'},
   {label: 'Pastels', value: 'pastels'},
   {label: 'Watercolours', value: 'watercolours'},
   {label: 'Drawings', value: 'drawings'},
 ]
+const CATEGORY_LABEL = new Map(CATEGORIES.map((c) => [c.value, c.label]))
+const CATEGORY_RANK = new Map(CATEGORIES.map((c, i) => [c.value, i]))
 
 const presentCategories = new Set(artworks.map((a) => a.category))
 
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
-
-// Pull just the year/date-range out of a series label for a compact
-// timeline entry, e.g. "OILS AND ACRYLICS - 2020 - 2021 - Canvas/Panel"
-// -> "2020 - 2021". Falls back to the full label when no year is found.
-function yearLabel(series: string): string {
-  const match = series.match(/\d{4}(?:\s*-\s*\d{2,4})?/)
-  return match ? match[0] : series
-}
-
-// artworks arrives pre-sorted by category, seriesOrder, order — group
-// consecutively so each section mirrors one of the original site's
-// year/series sub-galleries.
-interface Section {
-  id: string
-  galleryKey: string
+// One section per year (newest first), each split into per-medium subsections.
+// Undated pieces collect in a single trailing group.
+interface CategoryGroup {
   category: Artwork['category']
-  series: string
+  label: string
   artworks: Artwork[]
 }
+interface YearSection {
+  id: string
+  year: number | null
+  label: string
+  groups: CategoryGroup[]
+  categories: Artwork['category'][]
+  total: number
+}
 
-// Group by the stable `gallery` folder key, not the human-readable `series`
-// text — the original site's hand-edited pages have small inconsistencies
-// in that text within the same gallery (e.g. "Canvas/Panel" vs "Canvas/Pane"),
-// which would otherwise split one series into several sections.
-const sections: Section[] = []
-for (const artwork of artworks) {
-  const galleryKey = artwork.gallery || artwork.series || artwork._id
-  const key = `${artwork.category}::${galleryKey}`
-  const last = sections[sections.length - 1]
-  const lastKey = last ? `${last.category}::${last.galleryKey}` : null
-  if (lastKey === key) {
-    last.artworks.push(artwork)
-  } else {
-    sections.push({
-      id: slugify(`${artwork.category}-${galleryKey}-${sections.length}`),
-      galleryKey,
-      category: artwork.category,
-      series: artwork.series || '',
-      artworks: [artwork],
-    })
+const sorted = [...artworks].sort((a, b) => {
+  const ay = a.year ?? -Infinity
+  const by = b.year ?? -Infinity
+  if (ay !== by) return by - ay
+  const ar = CATEGORY_RANK.get(a.category) ?? 99
+  const br = CATEGORY_RANK.get(b.category) ?? 99
+  if (ar !== br) return ar - br
+  if ((a.seriesOrder ?? 0) !== (b.seriesOrder ?? 0)) return (a.seriesOrder ?? 0) - (b.seriesOrder ?? 0)
+  return (a.order ?? 0) - (b.order ?? 0)
+})
+
+const byYear = new Map<number | null, Map<Artwork['category'], Artwork[]>>()
+for (const artwork of sorted) {
+  const year = artwork.year ?? null
+  let categories = byYear.get(year)
+  if (!categories) {
+    categories = new Map()
+    byYear.set(year, categories)
   }
+  const list = categories.get(artwork.category)
+  if (list) list.push(artwork)
+  else categories.set(artwork.category, [artwork])
+}
+
+const sections: YearSection[] = []
+for (const [year, categories] of byYear) {
+  const groups: CategoryGroup[] = []
+  for (const [category, list] of categories) {
+    groups.push({category, label: CATEGORY_LABEL.get(category) ?? category, artworks: list})
+  }
+  sections.push({
+    id: year === null ? 'undated' : `year-${year}`,
+    year,
+    label: year === null ? 'Undated' : String(year),
+    groups,
+    categories: groups.map((g) => g.category),
+    total: groups.reduce((sum, g) => sum + g.artworks.length, 0),
+  })
+}
+
+// Timeline spine: years bracketed by decade so a 30-year span stays scannable.
+interface Decade {
+  label: string
+  sections: YearSection[]
+}
+const decades: Decade[] = []
+for (const section of sections) {
+  const label = section.year === null ? 'Undated' : `${Math.floor(section.year / 10) * 10}s`
+  const last = decades[decades.length - 1]
+  if (last && last.label === label) last.sections.push(section)
+  else decades.push({label, sections: [section]})
 }
 ---
 
 <div class="gallery">
-  <aside class="timeline" aria-label="Jump to a series">
-    <ul>
+  <aside class="timeline" aria-label="Jump to a year">
+    <nav>
       {
-        sections.map((section) => (
-          <li data-category={section.category}>
-            <a href={`#${section.id}`} title={section.series}>
-              {yearLabel(section.series)}
-            </a>
-          </li>
+        decades.map((decade) => (
+          <div class="decade" data-decade>
+            {decade.label !== 'Undated' && <p class="decade-label">{decade.label}</p>}
+            <ul>
+              {decade.sections.map((section) => (
+                <li data-categories={section.categories.join(' ')}>
+                  <a href={`#${section.id}`}>{section.label}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
         ))
       }
-    </ul>
+    </nav>
   </aside>
+
   <div class="content">
-    <div class="filters" role="group" aria-label="Filter by category">
+    <div class="filters" role="group" aria-label="Filter by medium">
+      <button type="button" class="filter-btn" data-filter="all">All</button>
       {
-        CATEGORIES.filter((c) => c.value === 'all' || presentCategories.has(c.value)).map((c) => (
+        CATEGORIES.filter((c) => presentCategories.has(c.value)).map((c) => (
           <button type="button" class="filter-btn" data-filter={c.value}>
             {c.label}
           </button>
         ))
       }
+      <span class="count" data-count></span>
     </div>
-    <p class="count" data-count></p>
+
     {
       sections.map((section) => (
-        <section id={section.id} class="series-section" data-category={section.category}>
-          {section.series && <h2 class="series-heading">{section.series}</h2>}
-          <div class="grid">
-            {section.artworks.map((artwork) => (
-              <ArtworkCard artwork={artwork} />
-            ))}
-          </div>
+        <section id={section.id} class="year-section" data-categories={section.categories.join(' ')}>
+          <h2 class="year-heading">{section.label}</h2>
+          {section.groups.map((group) => (
+            <div class="medium-group" data-category={group.category}>
+              <h3 class="medium-heading">{group.label}</h3>
+              <div class="grid">
+                {group.artworks.map((artwork) => (
+                  <ArtworkCard artwork={artwork} />
+                ))}
+              </div>
+            </div>
+          ))}
         </section>
       ))
     }
@@ -113,8 +147,8 @@ for (const artwork of artworks) {
 <style>
   .gallery {
     display: grid;
-    grid-template-columns: 160px 1fr;
-    gap: 2.5rem;
+    grid-template-columns: 110px 1fr;
+    gap: 3rem;
     align-items: start;
   }
 
@@ -123,6 +157,20 @@ for (const artwork of artworks) {
     top: 1.5rem;
     max-height: calc(100vh - 3rem);
     overflow-y: auto;
+    padding-right: 0.5rem;
+  }
+
+  .decade + .decade {
+    margin-top: 1.1rem;
+  }
+
+  .decade-label {
+    margin: 0 0 0.3rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0.65;
   }
 
   .timeline ul {
@@ -132,22 +180,20 @@ for (const artwork of artworks) {
     border-left: 1px solid var(--line);
   }
 
-  .timeline li {
-    line-height: 1;
-  }
-
   .timeline a {
     display: block;
-    padding: 0.45rem 0 0.45rem 0.9rem;
+    padding: 0.28rem 0 0.28rem 0.75rem;
     margin-left: -1px;
     border-left: 1px solid transparent;
     color: var(--muted);
     text-decoration: none;
-    font-size: 0.8rem;
-    white-space: nowrap;
+    font-size: 0.82rem;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
   }
 
-  .timeline a:hover {
+  .timeline a:hover,
+  .timeline li.active a {
     color: var(--accent);
     border-left-color: var(--accent);
   }
@@ -160,22 +206,25 @@ for (const artwork of artworks) {
     position: sticky;
     top: 0;
     z-index: 10;
-    background: var(--bg);
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 1rem 0 0.75rem;
-    margin-bottom: 0.25rem;
+    align-items: center;
+    gap: 0.45rem;
+    background: var(--bg);
+    padding: 1rem 0 0.9rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line);
   }
 
   .filter-btn {
+    font: inherit;
     border: 1px solid var(--line);
     background: var(--bg);
     color: var(--muted);
-    padding: 0.4rem 0.9rem;
+    padding: 0.35rem 0.85rem;
     border-radius: 999px;
-    font-size: 0.8rem;
-    letter-spacing: 0.04em;
+    font-size: 0.78rem;
+    letter-spacing: 0.01em;
     text-transform: uppercase;
     cursor: pointer;
   }
@@ -192,25 +241,37 @@ for (const artwork of artworks) {
   }
 
   .count {
+    margin-left: auto;
     color: var(--muted);
-    font-size: 0.8rem;
-    margin: 0 0 2rem;
+    font-size: 0.78rem;
   }
 
-  .series-section {
-    margin-bottom: 3rem;
-    scroll-margin-top: 4.5rem;
+  .year-section {
+    margin-bottom: 3.5rem;
+    scroll-margin-top: 4.25rem;
   }
 
-  .series-heading {
-    font-size: 1rem;
+  .year-heading {
+    font-size: 1.6rem;
     font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: var(--ink);
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+    margin: 0 0 1.25rem;
+    padding-bottom: 0.4rem;
     border-bottom: 1px solid var(--line);
-    padding-bottom: 0.5rem;
-    margin: 0 0 1.5rem;
+  }
+
+  .medium-group + .medium-group {
+    margin-top: 2.25rem;
+  }
+
+  .medium-heading {
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 1rem;
   }
 
   .grid {
@@ -228,6 +289,7 @@ for (const artwork of artworks) {
   @media (max-width: 800px) {
     .gallery {
       grid-template-columns: 1fr;
+      gap: 0;
     }
 
     .timeline {
@@ -239,23 +301,45 @@ for (const artwork of artworks) {
 <script>
   function initGallery(root: HTMLElement) {
     const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('.filter-btn'))
-    const sections = Array.from(root.querySelectorAll<HTMLElement>('.series-section'))
+    const sections = Array.from(root.querySelectorAll<HTMLElement>('.year-section'))
+    const groups = Array.from(root.querySelectorAll<HTMLElement>('.medium-group'))
     const timelineItems = Array.from(root.querySelectorAll<HTMLElement>('.timeline li'))
+    const decadeBlocks = Array.from(root.querySelectorAll<HTMLElement>('[data-decade]'))
     const countEl = root.querySelector<HTMLElement>('[data-count]')
     const emptyEl = root.querySelector<HTMLElement>('.empty')
 
+    function matches(el: HTMLElement, filter: string) {
+      if (filter === 'all') return true
+      const list = (el.dataset.categories ?? el.dataset.category ?? '').split(' ')
+      return list.includes(filter)
+    }
+
     function applyFilter(filter: string) {
       let visible = 0
+
+      for (const group of groups) {
+        group.hidden = !matches(group, filter)
+      }
       for (const section of sections) {
-        const matches = filter === 'all' || section.dataset.category === filter
-        section.style.display = matches ? '' : 'none'
-        if (matches) visible += section.querySelectorAll('.card').length
+        const show = matches(section, filter)
+        section.hidden = !show
+        if (show) {
+          visible += section.querySelectorAll(
+            filter === 'all' ? '.card' : `.medium-group[data-category="${filter}"] .card`,
+          ).length
+        }
       }
       for (const item of timelineItems) {
-        const matches = filter === 'all' || item.dataset.category === filter
-        item.style.display = matches ? '' : 'none'
+        item.hidden = !matches(item, filter)
       }
-      if (countEl) countEl.textContent = `${visible} piece${visible === 1 ? '' : 's'}`
+      // Hide a decade heading once every year under it is filtered out.
+      for (const block of decadeBlocks) {
+        const anyVisible = Array.from(block.querySelectorAll<HTMLElement>('li')).some((li) => !li.hidden)
+        block.hidden = !anyVisible
+      }
+
+
+      if (countEl) countEl.textContent = `${visible.toLocaleString()} piece${visible === 1 ? '' : 's'}`
       if (emptyEl) emptyEl.hidden = visible !== 0
       for (const btn of buttons) {
         btn.classList.toggle('active', btn.dataset.filter === filter)
@@ -265,6 +349,22 @@ for (const artwork of artworks) {
     for (const btn of buttons) {
       btn.addEventListener('click', () => applyFilter(btn.dataset.filter || 'all'))
     }
+
+    // Highlight the year currently in view.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue
+          const id = entry.target.id
+          for (const item of timelineItems) {
+            const link = item.querySelector('a')
+            item.classList.toggle('active', link?.getAttribute('href') === `#${id}`)
+          }
+        }
+      },
+      {rootMargin: '-20% 0px -70% 0px'},
+    )
+    for (const section of sections) observer.observe(section)
 
     applyFilter('all')
   }
