@@ -19,65 +19,158 @@ const CATEGORIES: {label: string; value: Artwork['category'] | 'all'}[] = [
 
 const presentCategories = new Set(artworks.map((a) => a.category))
 
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+// Pull just the year/date-range out of a series label for a compact
+// timeline entry, e.g. "OILS AND ACRYLICS - 2020 - 2021 - Canvas/Panel"
+// -> "2020 - 2021". Falls back to the full label when no year is found.
+function yearLabel(series: string): string {
+  const match = series.match(/\d{4}(?:\s*-\s*\d{2,4})?/)
+  return match ? match[0] : series
+}
+
 // artworks arrives pre-sorted by category, seriesOrder, order — group
 // consecutively so each section mirrors one of the original site's
 // year/series sub-galleries.
 interface Section {
+  id: string
+  galleryKey: string
   category: Artwork['category']
   series: string
   artworks: Artwork[]
 }
 
+// Group by the stable `gallery` folder key, not the human-readable `series`
+// text — the original site's hand-edited pages have small inconsistencies
+// in that text within the same gallery (e.g. "Canvas/Panel" vs "Canvas/Pane"),
+// which would otherwise split one series into several sections.
 const sections: Section[] = []
 for (const artwork of artworks) {
-  const key = `${artwork.category}::${artwork.series || ''}`
+  const galleryKey = artwork.gallery || artwork.series || artwork._id
+  const key = `${artwork.category}::${galleryKey}`
   const last = sections[sections.length - 1]
-  const lastKey = last ? `${last.category}::${last.series}` : null
+  const lastKey = last ? `${last.category}::${last.galleryKey}` : null
   if (lastKey === key) {
     last.artworks.push(artwork)
   } else {
-    sections.push({category: artwork.category, series: artwork.series || '', artworks: [artwork]})
+    sections.push({
+      id: slugify(`${artwork.category}-${galleryKey}-${sections.length}`),
+      galleryKey,
+      category: artwork.category,
+      series: artwork.series || '',
+      artworks: [artwork],
+    })
   }
 }
 ---
 
 <div class="gallery">
-  <div class="filters" role="group" aria-label="Filter by category">
+  <aside class="timeline" aria-label="Jump to a series">
+    <ul>
+      {
+        sections.map((section) => (
+          <li data-category={section.category}>
+            <a href={`#${section.id}`} title={section.series}>
+              {yearLabel(section.series)}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </aside>
+  <div class="content">
+    <div class="filters" role="group" aria-label="Filter by category">
+      {
+        CATEGORIES.filter((c) => c.value === 'all' || presentCategories.has(c.value)).map((c) => (
+          <button type="button" class="filter-btn" data-filter={c.value}>
+            {c.label}
+          </button>
+        ))
+      }
+    </div>
+    <p class="count" data-count></p>
     {
-      CATEGORIES.filter((c) => c.value === 'all' || presentCategories.has(c.value)).map((c) => (
-        <button type="button" class="filter-btn" data-filter={c.value}>
-          {c.label}
-        </button>
+      sections.map((section) => (
+        <section id={section.id} class="series-section" data-category={section.category}>
+          {section.series && <h2 class="series-heading">{section.series}</h2>}
+          <div class="grid">
+            {section.artworks.map((artwork) => (
+              <ArtworkCard artwork={artwork} />
+            ))}
+          </div>
+        </section>
       ))
     }
+    <p class="empty" hidden>No pieces match this filter.</p>
   </div>
-  <p class="count" data-count></p>
-  {
-    sections.map((section) => (
-      <section class="series-section" data-category={section.category}>
-        {section.series && <h2 class="series-heading">{section.series}</h2>}
-        <div class="grid">
-          {section.artworks.map((artwork) => (
-            <ArtworkCard artwork={artwork} />
-          ))}
-        </div>
-      </section>
-    ))
-  }
-  <p class="empty" hidden>No pieces match this filter.</p>
 </div>
 
 <style>
+  .gallery {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  .timeline {
+    position: sticky;
+    top: 1.5rem;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+  }
+
+  .timeline ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 1px solid var(--line);
+  }
+
+  .timeline li {
+    line-height: 1;
+  }
+
+  .timeline a {
+    display: block;
+    padding: 0.45rem 0 0.45rem 0.9rem;
+    margin-left: -1px;
+    border-left: 1px solid transparent;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  .timeline a:hover {
+    color: var(--accent);
+    border-left-color: var(--accent);
+  }
+
+  .content {
+    min-width: 0;
+  }
+
   .filters {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg);
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-bottom: 0.75rem;
+    padding: 1rem 0 0.75rem;
+    margin-bottom: 0.25rem;
   }
 
   .filter-btn {
     border: 1px solid var(--line);
-    background: transparent;
+    background: var(--bg);
     color: var(--muted);
     padding: 0.4rem 0.9rem;
     border-radius: 999px;
@@ -106,6 +199,7 @@ for (const artwork of artworks) {
 
   .series-section {
     margin-bottom: 3rem;
+    scroll-margin-top: 4.5rem;
   }
 
   .series-heading {
@@ -130,12 +224,23 @@ for (const artwork of artworks) {
     padding: 3rem 0;
     text-align: center;
   }
+
+  @media (max-width: 800px) {
+    .gallery {
+      grid-template-columns: 1fr;
+    }
+
+    .timeline {
+      display: none;
+    }
+  }
 </style>
 
 <script>
   function initGallery(root: HTMLElement) {
     const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('.filter-btn'))
     const sections = Array.from(root.querySelectorAll<HTMLElement>('.series-section'))
+    const timelineItems = Array.from(root.querySelectorAll<HTMLElement>('.timeline li'))
     const countEl = root.querySelector<HTMLElement>('[data-count]')
     const emptyEl = root.querySelector<HTMLElement>('.empty')
 
@@ -145,6 +250,10 @@ for (const artwork of artworks) {
         const matches = filter === 'all' || section.dataset.category === filter
         section.style.display = matches ? '' : 'none'
         if (matches) visible += section.querySelectorAll('.card').length
+      }
+      for (const item of timelineItems) {
+        const matches = filter === 'all' || item.dataset.category === filter
+        item.style.display = matches ? '' : 'none'
       }
       if (countEl) countEl.textContent = `${visible} piece${visible === 1 ? '' : 's'}`
       if (emptyEl) emptyEl.hidden = visible !== 0

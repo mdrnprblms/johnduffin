@@ -32,6 +32,7 @@ export interface Artwork {
   category: 'oils' | 'prints' | 'pastels' | 'watercolours' | 'drawings'
   series?: string
   seriesOrder?: number
+  gallery?: string
   year?: number
   medium?: string
   dimensions?: string
@@ -51,6 +52,7 @@ export const ARTWORK_PROJECTION = `{
   category,
   series,
   seriesOrder,
+  gallery,
   year,
   medium,
   dimensions,
