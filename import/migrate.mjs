@@ -80,18 +80,6 @@ export function extractPrice(prices) {
   return Number.isFinite(value) ? value : undefined
 }
 
-function buildOrderMap(records) {
-  const counters = new Map()
-  const orders = new Map()
-  for (const r of records) {
-    const key = `${r.category}::${r.gallery}`
-    const next = (counters.get(key) || 0) + 1
-    counters.set(key, next)
-    orders.set(r.source_page_url, next)
-  }
-  return orders
-}
-
 async function withRetry(fn, label, attempts = 3) {
   let lastErr
   for (let i = 1; i <= attempts; i++) {
@@ -106,7 +94,7 @@ async function withRetry(fn, label, attempts = 3) {
   throw lastErr
 }
 
-export function toDoc(record, order) {
+export function toDoc(record) {
   const id = docIdFor(record.source_page_url)
   const slug = `${slugify(record.page_title || record.series_title || id)}-${id.slice(-6)}`
   const status = record.sold ? 'sold' : 'available'
@@ -120,6 +108,8 @@ export function toDoc(record, order) {
     slug: {_type: 'slug', current: slug},
     category: record.category,
     series: cleanSeries(record.series_title),
+    seriesOrder: record.series_order,
+    gallery: record.gallery,
     year: extractYear(rawText),
     medium: extractMedium(rawText),
     dimensions: (record.dimensions && record.dimensions[0]) || undefined,
@@ -128,14 +118,14 @@ export function toDoc(record, order) {
     price,
     priceOnEnquiry: status === 'available' && price === undefined ? true : undefined,
     description: rawText || undefined,
-    order,
+    order: record.order,
     sourceUrl: record.source_page_url,
   }
   return doc
 }
 
-async function importRecord(record, order) {
-  const doc = toDoc(record, order)
+async function importRecord(record) {
+  const doc = toDoc(record)
 
   if (!record.image_local_path) {
     console.warn(`  SKIP (no image): ${doc.sourceUrl}`)
@@ -162,7 +152,6 @@ async function importRecord(record, order) {
 
 async function main() {
   const records = JSON.parse(await readFile(DATA_PATH, 'utf-8'))
-  const orderMap = buildOrderMap(records)
 
   let toProcess = records
   if (!FORCE) {
@@ -184,9 +173,8 @@ async function main() {
   async function worker() {
     while (cursor < toProcess.length) {
       const record = toProcess[cursor++]
-      const order = orderMap.get(record.source_page_url)
       try {
-        const result = await importRecord(record, order)
+        const result = await importRecord(record)
         if (result === 'imported') imported++
         else skipped++
       } catch (err) {

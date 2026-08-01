@@ -92,10 +92,14 @@ def strip_tags(fragment):
 
 
 def find_gallery_links(category_page_url, html_text):
-    links = set()
+    seen = set()
+    ordered = []
     for m in re.finditer(r"MM_openBrWindow\('([^']+)'", html_text):
-        links.add(m.group(1))
-    return sorted(urljoin(category_page_url, l) for l in links)
+        link = m.group(1)
+        if link not in seen:
+            seen.add(link)
+            ordered.append(urljoin(category_page_url, link))
+    return ordered
 
 
 def parse_gallery_index(gallery_url, html_text):

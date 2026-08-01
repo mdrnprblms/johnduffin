@@ -18,6 +18,27 @@ const CATEGORIES: {label: string; value: Artwork['category'] | 'all'}[] = [
 ]
 
 const presentCategories = new Set(artworks.map((a) => a.category))
+
+// artworks arrives pre-sorted by category, seriesOrder, order — group
+// consecutively so each section mirrors one of the original site's
+// year/series sub-galleries.
+interface Section {
+  category: Artwork['category']
+  series: string
+  artworks: Artwork[]
+}
+
+const sections: Section[] = []
+for (const artwork of artworks) {
+  const key = `${artwork.category}::${artwork.series || ''}`
+  const last = sections[sections.length - 1]
+  const lastKey = last ? `${last.category}::${last.series}` : null
+  if (lastKey === key) {
+    last.artworks.push(artwork)
+  } else {
+    sections.push({category: artwork.category, series: artwork.series || '', artworks: [artwork]})
+  }
+}
 ---
 
 <div class="gallery">
@@ -31,9 +52,18 @@ const presentCategories = new Set(artworks.map((a) => a.category))
     }
   </div>
   <p class="count" data-count></p>
-  <div class="grid">
-    {artworks.map((artwork) => <ArtworkCard artwork={artwork} />)}
-  </div>
+  {
+    sections.map((section) => (
+      <section class="series-section" data-category={section.category}>
+        {section.series && <h2 class="series-heading">{section.series}</h2>}
+        <div class="grid">
+          {section.artworks.map((artwork) => (
+            <ArtworkCard artwork={artwork} />
+          ))}
+        </div>
+      </section>
+    ))
+  }
   <p class="empty" hidden>No pieces match this filter.</p>
 </div>
 
@@ -71,6 +101,21 @@ const presentCategories = new Set(artworks.map((a) => a.category))
   .count {
     color: var(--muted);
     font-size: 0.8rem;
+    margin: 0 0 2rem;
+  }
+
+  .series-section {
+    margin-bottom: 3rem;
+  }
+
+  .series-heading {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.5rem;
     margin: 0 0 1.5rem;
   }
 
@@ -90,16 +135,16 @@ const presentCategories = new Set(artworks.map((a) => a.category))
 <script>
   function initGallery(root: HTMLElement) {
     const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('.filter-btn'))
-    const cards = Array.from(root.querySelectorAll<HTMLAnchorElement>('.card'))
+    const sections = Array.from(root.querySelectorAll<HTMLElement>('.series-section'))
     const countEl = root.querySelector<HTMLElement>('[data-count]')
     const emptyEl = root.querySelector<HTMLElement>('.empty')
 
     function applyFilter(filter: string) {
       let visible = 0
-      for (const card of cards) {
-        const matches = filter === 'all' || card.dataset.category === filter
-        card.style.display = matches ? '' : 'none'
-        if (matches) visible++
+      for (const section of sections) {
+        const matches = filter === 'all' || section.dataset.category === filter
+        section.style.display = matches ? '' : 'none'
+        if (matches) visible += section.querySelectorAll('.card').length
       }
       if (countEl) countEl.textContent = `${visible} piece${visible === 1 ? '' : 's'}`
       if (emptyEl) emptyEl.hidden = visible !== 0

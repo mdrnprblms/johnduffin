@@ -31,6 +31,7 @@ export interface Artwork {
   slug: string
   category: 'oils' | 'prints' | 'pastels' | 'watercolours' | 'drawings'
   series?: string
+  seriesOrder?: number
   year?: number
   medium?: string
   dimensions?: string
@@ -49,6 +50,7 @@ export const ARTWORK_PROJECTION = `{
   "slug": slug.current,
   category,
   series,
+  seriesOrder,
   year,
   medium,
   dimensions,
@@ -63,7 +65,7 @@ export const ARTWORK_PROJECTION = `{
 
 export async function getAllArtworks(): Promise<Artwork[]> {
   return sanityClient.fetch(
-    `*[_type == "artwork"] | order(category asc, series asc, order asc) ${ARTWORK_PROJECTION}`,
+    `*[_type == "artwork"] | order(category asc, seriesOrder asc, order asc) ${ARTWORK_PROJECTION}`,
   )
 }
 

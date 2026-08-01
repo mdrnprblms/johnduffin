@@ -40,6 +40,19 @@ export default defineType({
       type: 'string',
     }),
     defineField({
+      name: 'seriesOrder',
+      title: 'Series order',
+      description: 'Position of this series within its category (0 = most recent, matching the original site).',
+      type: 'number',
+    }),
+    defineField({
+      name: 'gallery',
+      title: 'Gallery key',
+      description: 'Internal identifier for the original gallery folder, e.g. "oil-20-21".',
+      type: 'string',
+      readOnly: true,
+    }),
+    defineField({
       name: 'year',
       title: 'Year',
       type: 'number',
