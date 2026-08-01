@@ -29,7 +29,7 @@ function formatPrice(a: Artwork): string {
 
 const imageUrl = urlFor(artwork.image).width(1400).fit('max').auto('format').url()
 
-const backHref = withBase(artwork.status === 'sold' ? '/portfolio' : '/for-sale')
+const backHref = withBase('/portfolio')
 const details = [artwork.medium, artwork.year, artwork.dimensions].filter(Boolean).join(' · ')
 ---
 

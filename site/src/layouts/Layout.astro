@@ -21,8 +21,8 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
     <header class="site-header">
       <a class="brand" href={withBase('/')}>John Duffin</a>
       <nav>
-        <a href={withBase('/for-sale')}>For Sale</a>
-        <a href={withBase('/portfolio')}>Portfolio</a>
+        <a href={withBase('/portfolio')}>Work</a>
+        <a href={withBase('/portfolio?for-sale=1')}>For Sale</a>
       </nav>
     </header>
     <main>
@@ -46,6 +46,12 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
 
   * {
     box-sizing: border-box;
+  }
+
+  /* An author `display` declaration outranks the UA's [hidden] rule, so
+     elements like .card (display: block) would keep rendering when hidden. */
+  [hidden] {
+    display: none !important;
   }
 
   html,

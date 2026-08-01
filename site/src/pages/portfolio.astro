@@ -6,9 +6,9 @@ import {getAllArtworks} from '../lib/sanity'
 const artworks = await getAllArtworks()
 ---
 
-<Layout title="Portfolio">
-  <h1>Portfolio</h1>
-  <p class="intro">The full body of work, including pieces already sold.</p>
+<Layout title="Work">
+  <h1>Work</h1>
+  <p class="intro">The full catalogue. Toggle "For sale only" to see what's currently available.</p>
   <Gallery artworks={artworks} />
 </Layout>
 
