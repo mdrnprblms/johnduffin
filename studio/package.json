@@ -1,0 +1,23 @@
+{
+  "name": "john-duffin-studio",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "sanity dev",
+    "start": "sanity start",
+    "build": "sanity build",
+    "deploy": "sanity deploy"
+  },
+  "dependencies": {
+    "@sanity/vision": "^6.8.0",
+    "react": "^19",
+    "react-dom": "^19",
+    "sanity": "^6.8.0",
+    "styled-components": "^6.4.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,20 @@
+---
+import Layout from '../layouts/Layout.astro'
+import Gallery from '../components/Gallery.astro'
+import {getAllArtworks} from '../lib/sanity'
+
+const artworks = await getAllArtworks()
+---
+
+<Layout title="Portfolio">
+  <h1>Portfolio</h1>
+  <p class="intro">The full body of work, including pieces already sold.</p>
+  <Gallery artworks={artworks} />
+</Layout>
+
+<style>
+  .intro {
+    color: var(--muted);
+    margin-top: -0.5rem;
+  }
+</style>

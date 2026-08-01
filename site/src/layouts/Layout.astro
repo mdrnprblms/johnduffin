@@ -1,0 +1,119 @@
+---
+import {withBase} from '../lib/paths'
+
+interface Props {
+  title: string
+  description?: string
+}
+
+const {title, description = 'John Duffin — paintings, prints, pastels, watercolours and drawings.'} = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title} · John Duffin</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href={withBase('/')}>John Duffin</a>
+      <nav>
+        <a href={withBase('/for-sale')}>For Sale</a>
+        <a href={withBase('/portfolio')}>Portfolio</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <p>All works &copy; John Duffin</p>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --line: #e4e2dd;
+    --bg: #fdfcfa;
+    --accent: #8a2b1d;
+    font-synthesis: none;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    line-height: 1.5;
+  }
+
+  .site-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 2rem 2rem 1.25rem;
+    border-bottom: 1px solid var(--line);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .brand {
+    font-size: 1.5rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .site-header nav {
+    display: flex;
+    gap: 1.75rem;
+  }
+
+  .site-header nav a {
+    color: var(--muted);
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+  }
+
+  .site-header nav a:hover,
+  .site-header nav a.active {
+    color: var(--accent);
+  }
+
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 60vh;
+  }
+
+  .site-footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--line);
+  }
+
+  a {
+    color: inherit;
+  }
+</style>

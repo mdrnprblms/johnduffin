@@ -1,0 +1,56 @@
+---
+import Layout from '../layouts/Layout.astro'
+import {withBase} from '../lib/paths'
+---
+
+<Layout title="Home">
+  <section class="hero">
+    <h1>John Duffin</h1>
+    <p>Paintings, prints, pastels, watercolours and drawings.</p>
+    <div class="links">
+      <a class="button" href={withBase('/for-sale')}>Browse work for sale</a>
+      <a class="button secondary" href={withBase('/portfolio')}>View full portfolio</a>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .hero {
+    text-align: center;
+    padding: 4rem 0;
+  }
+
+  .hero h1 {
+    font-size: 2.4rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .hero p {
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+
+  .links {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: var(--ink);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 2px;
+    letter-spacing: 0.04em;
+    font-size: 0.9rem;
+  }
+
+  .button.secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+</style>

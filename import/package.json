@@ -1,0 +1,12 @@
+{
+  "name": "john-duffin-import",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "migrate": "node --env-file=.env migrate.mjs"
+  },
+  "dependencies": {
+    "@sanity/client": "^7.26.0"
+  }
+}

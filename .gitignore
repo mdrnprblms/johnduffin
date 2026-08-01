@@ -1,0 +1,26 @@
+node_modules/
+.env
+.env.local
+*.env
+
+# Scraper cache / import source (regenerable via scripts/scrape.py; images live in Sanity's CDN once imported)
+output/
+
+# Python
+__pycache__/
+*.pyc
+
+# Astro build output
+site/dist/
+site/.astro/
+
+# Sanity Studio build/dev output
+studio/dist/
+studio/.sanity/
+
+# Import script run logs
+import/*.log
+
+# OS
+.DS_Store
+Thumbs.db

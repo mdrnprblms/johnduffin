@@ -1,0 +1,130 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import {withBase} from '../../lib/paths'
+import {urlFor, getAllArtworks, type Artwork} from '../../lib/sanity'
+
+export async function getStaticPaths() {
+  const artworks = await getAllArtworks()
+  return artworks.map((artwork) => ({
+    params: {slug: artwork.slug},
+    props: {artwork},
+  }))
+}
+
+interface Props {
+  artwork: Artwork
+}
+
+const {artwork} = Astro.props
+
+function formatPrice(a: Artwork): string {
+  if (a.status === 'sold') return 'Sold'
+  if (a.priceOnEnquiry || !a.price) return 'Enquire for price'
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: a.currency || 'GBP',
+    maximumFractionDigits: 0,
+  }).format(a.price)
+}
+
+const imageUrl = urlFor(artwork.image).width(1400).fit('max').auto('format').url()
+
+const backHref = withBase(artwork.status === 'sold' ? '/portfolio' : '/for-sale')
+const details = [artwork.medium, artwork.year, artwork.dimensions].filter(Boolean).join(' · ')
+---
+
+<Layout title={artwork.title} description={details}>
+  <a class="back" href={backHref}>&larr; Back</a>
+  <div class="detail">
+    <div class="image">
+      <img src={imageUrl} alt={artwork.title} />
+      {artwork.status === 'sold' && <span class="badge">Sold</span>}
+    </div>
+    <div class="info">
+      <h1>{artwork.title}</h1>
+      {artwork.series && <p class="series">{artwork.series}</p>}
+      {details && <p class="details">{details}</p>}
+      <p class="price">{formatPrice(artwork)}</p>
+      {artwork.description && <p class="description">{artwork.description}</p>}
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .back {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+
+  .back:hover {
+    color: var(--accent);
+  }
+
+  .detail {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  @media (max-width: 800px) {
+    .detail {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .image {
+    position: relative;
+    background: #f1efe9;
+  }
+
+  .image img {
+    width: 100%;
+    display: block;
+  }
+
+  .badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.7rem;
+    border-radius: 2px;
+  }
+
+  h1 {
+    margin: 0 0 0.4rem;
+    font-size: 1.6rem;
+  }
+
+  .series {
+    color: var(--muted);
+    margin: 0 0 1rem;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+  }
+
+  .details {
+    margin: 0 0 0.5rem;
+    color: var(--muted);
+  }
+
+  .price {
+    font-size: 1.1rem;
+    color: var(--accent);
+    margin: 0 0 1.5rem;
+  }
+
+  .description {
+    color: var(--muted);
+    line-height: 1.7;
+  }
+</style>

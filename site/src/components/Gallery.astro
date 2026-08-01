@@ -1,0 +1,119 @@
+---
+import ArtworkCard from './ArtworkCard.astro'
+import type {Artwork} from '../lib/sanity'
+
+interface Props {
+  artworks: Artwork[]
+}
+
+const {artworks} = Astro.props
+
+const CATEGORIES: {label: string; value: Artwork['category'] | 'all'}[] = [
+  {label: 'All', value: 'all'},
+  {label: 'Oils', value: 'oils'},
+  {label: 'Prints', value: 'prints'},
+  {label: 'Pastels', value: 'pastels'},
+  {label: 'Watercolours', value: 'watercolours'},
+  {label: 'Drawings', value: 'drawings'},
+]
+
+const presentCategories = new Set(artworks.map((a) => a.category))
+---
+
+<div class="gallery">
+  <div class="filters" role="group" aria-label="Filter by category">
+    {
+      CATEGORIES.filter((c) => c.value === 'all' || presentCategories.has(c.value)).map((c) => (
+        <button type="button" class="filter-btn" data-filter={c.value}>
+          {c.label}
+        </button>
+      ))
+    }
+  </div>
+  <p class="count" data-count></p>
+  <div class="grid">
+    {artworks.map((artwork) => <ArtworkCard artwork={artwork} />)}
+  </div>
+  <p class="empty" hidden>No pieces match this filter.</p>
+</div>
+
+<style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .filter-btn {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .filter-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .filter-btn.active {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+
+  .count {
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin: 0 0 1.5rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 2rem 1.5rem;
+  }
+
+  .empty {
+    color: var(--muted);
+    padding: 3rem 0;
+    text-align: center;
+  }
+</style>
+
+<script>
+  function initGallery(root: HTMLElement) {
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('.filter-btn'))
+    const cards = Array.from(root.querySelectorAll<HTMLAnchorElement>('.card'))
+    const countEl = root.querySelector<HTMLElement>('[data-count]')
+    const emptyEl = root.querySelector<HTMLElement>('.empty')
+
+    function applyFilter(filter: string) {
+      let visible = 0
+      for (const card of cards) {
+        const matches = filter === 'all' || card.dataset.category === filter
+        card.style.display = matches ? '' : 'none'
+        if (matches) visible++
+      }
+      if (countEl) countEl.textContent = `${visible} piece${visible === 1 ? '' : 's'}`
+      if (emptyEl) emptyEl.hidden = visible !== 0
+      for (const btn of buttons) {
+        btn.classList.toggle('active', btn.dataset.filter === filter)
+      }
+    }
+
+    for (const btn of buttons) {
+      btn.addEventListener('click', () => applyFilter(btn.dataset.filter || 'all'))
+    }
+
+    applyFilter('all')
+  }
+
+  document.querySelectorAll<HTMLElement>('.gallery').forEach(initGallery)
+</script>

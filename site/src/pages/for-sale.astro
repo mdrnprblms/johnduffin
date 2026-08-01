@@ -1,0 +1,12 @@
+---
+import Layout from '../layouts/Layout.astro'
+import Gallery from '../components/Gallery.astro'
+import {getAllArtworks} from '../lib/sanity'
+
+const artworks = (await getAllArtworks()).filter((a) => a.status === 'available')
+---
+
+<Layout title="For Sale">
+  <h1>For Sale</h1>
+  <Gallery artworks={artworks} />
+</Layout>

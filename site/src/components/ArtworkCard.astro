@@ -1,0 +1,98 @@
+---
+import {urlFor, type Artwork} from '../lib/sanity'
+import {withBase} from '../lib/paths'
+
+interface Props {
+  artwork: Artwork
+}
+
+const {artwork} = Astro.props
+
+function formatPrice(a: Artwork): string {
+  if (a.status === 'sold') return 'Sold'
+  if (a.priceOnEnquiry || !a.price) return 'Enquire for price'
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: a.currency || 'GBP',
+    maximumFractionDigits: 0,
+  }).format(a.price)
+}
+
+const imageUrl = urlFor(artwork.image).width(500).height(500).fit('max').auto('format').url()
+---
+
+<a
+  class="card"
+  href={withBase(`/artwork/${artwork.slug}`)}
+  data-category={artwork.category}
+  data-status={artwork.status}
+>
+  <div class="thumb">
+    <img src={imageUrl} alt={artwork.title} loading="lazy" />
+    {artwork.status === 'sold' && <span class="badge">Sold</span>}
+  </div>
+  <div class="meta">
+    <h3>{artwork.title}</h3>
+    {artwork.medium || artwork.year ? (
+      <p class="sub">{[artwork.medium, artwork.year].filter(Boolean).join(', ')}</p>
+    ) : null}
+    <p class="price">{formatPrice(artwork)}</p>
+  </div>
+</a>
+
+<style>
+  .card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .thumb {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: #f1efe9;
+    overflow: hidden;
+  }
+
+  .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .badge {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.55rem;
+    border-radius: 2px;
+  }
+
+  .meta {
+    padding-top: 0.6rem;
+  }
+
+  h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 0.15rem;
+  }
+
+  .sub {
+    margin: 0 0 0.25rem;
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+
+  .price {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+</style>
