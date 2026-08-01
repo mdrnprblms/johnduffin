@@ -1,8 +1,8 @@
 import {createClient} from '@sanity/client'
 import {createImageUrlBuilder, type SanityImageSource} from '@sanity/image-url'
 
-const projectId = import.meta.env.SANITY_PROJECT_ID
-const dataset = import.meta.env.SANITY_DATASET || 'production'
+const projectId = (import.meta.env.SANITY_PROJECT_ID || '').trim()
+const dataset = (import.meta.env.SANITY_DATASET || '').trim() || 'production'
 
 if (!projectId) {
   throw new Error(
