@@ -4,9 +4,14 @@ import {withBase} from '../lib/paths'
 interface Props {
   title: string
   description?: string
+  fullBleed?: boolean
 }
 
-const {title, description = 'John Duffin — paintings, prints, pastels, watercolours and drawings.'} = Astro.props
+const {
+  title,
+  description = 'John Duffin — paintings, prints, pastels, watercolours and drawings.',
+  fullBleed = false,
+} = Astro.props
 ---
 
 <!doctype html>
@@ -27,7 +32,7 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
         <a href={withBase('/contact')}>Contact</a>
       </nav>
     </header>
-    <main>
+    <main class:list={[{'full-bleed': fullBleed}]}>
       <slot />
     </main>
     <footer class="site-footer">
@@ -67,6 +72,10 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
   }
 
   body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     background: var(--bg);
     color: var(--ink);
     font-family: var(--font-body);
@@ -76,7 +85,7 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
   }
 
   .noise {
-    position: fixed;
+    position: absolute;
     inset: 0;
     z-index: 0;
     opacity: 0.05;
@@ -150,10 +159,19 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
   }
 
   main {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
     min-height: 60vh;
+    width: 100%;
+  }
+
+  main.full-bleed {
+    max-width: none;
+    padding: 0;
   }
 
   .site-footer {
