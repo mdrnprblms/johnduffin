@@ -84,6 +84,7 @@ export interface YearEntry {
 }
 
 export interface ArtistInfo {
+  portrait?: SanityImageSource
   rwsHeading?: string
   rwsBio?: string
   rwsSourceLabel?: string

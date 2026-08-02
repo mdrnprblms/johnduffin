@@ -101,7 +101,7 @@ const redirectTo = `https://mdrnprblms.github.io/johnduffin/contact?sent=true`
   }
 
   .sent-notice {
-    background: #f1efe9;
+    background: var(--surface);
     border-left: 3px solid var(--accent);
     padding: 1rem 1.25rem;
     margin: 1.5rem 0;
@@ -132,7 +132,7 @@ const redirectTo = `https://mdrnprblms.github.io/johnduffin/contact?sent=true`
     letter-spacing: normal;
     text-transform: none;
     color: var(--ink);
-    background: #fff;
+    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 2px;
     padding: 0.65rem 0.75rem;
@@ -153,7 +153,7 @@ const redirectTo = `https://mdrnprblms.github.io/johnduffin/contact?sent=true`
     text-transform: uppercase;
     padding: 0.75rem 2rem;
     background: var(--ink);
-    color: #fff;
+    color: var(--bg);
     border: none;
     border-radius: 2px;
     cursor: pointer;
@@ -161,5 +161,6 @@ const redirectTo = `https://mdrnprblms.github.io/johnduffin/contact?sent=true`
 
   .contact-form button:hover {
     background: var(--accent);
+    color: #fff;
   }
 </style>

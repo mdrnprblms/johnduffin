@@ -18,6 +18,7 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
     <title>{title} · John Duffin</title>
   </head>
   <body>
+    <div class="noise" aria-hidden="true"></div>
     <header class="site-header">
       <a class="brand" href={withBase('/')}>John Duffin</a>
       <nav>
@@ -37,11 +38,12 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
 
 <style is:global>
   :root {
-    --ink: #1a1a1a;
-    --muted: #6b6b6b;
-    --line: #e4e2dd;
-    --bg: #fdfcfa;
-    --accent: #8a2b1d;
+    --bg: #333333;
+    --surface: #3c3c3c;
+    --ink: #f2f0ea;
+    --muted: #a8a39b;
+    --line: #4d4d4d;
+    --accent: #d1583c;
     --font-body: Futura, 'Century Gothic', 'Futura PT', 'Helvetica Neue', Arial, sans-serif;
     --font-title: 'Futura Bold Condensed', 'Futura Condensed Bold', 'Futura Condensed', Futura, 'Helvetica Neue', Arial, sans-serif;
     --tracking: -0.05em;
@@ -71,6 +73,22 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
     line-height: 1.45;
     letter-spacing: var(--tracking);
     -webkit-font-smoothing: antialiased;
+  }
+
+  .noise {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.15;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .site-header,
+  main,
+  .site-footer {
+    position: relative;
+    z-index: 1;
   }
 
   h1,

@@ -1,8 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro'
-import {getArtistInfo, type YearEntry} from '../lib/sanity'
+import {getArtistInfo, urlFor, type YearEntry} from '../lib/sanity'
 
 const info = await getArtistInfo()
+const portraitUrl = info?.portrait ? urlFor(info.portrait).width(700).height(700).fit('crop').auto('format').url() : null
 
 const sections: {title: string; entries?: YearEntry[]}[] = [
   {title: 'Biography', entries: info?.bioTimeline},
@@ -18,20 +19,25 @@ const sections: {title: string; entries?: YearEntry[]}[] = [
   <h1>About</h1>
 
   {
-    info?.rwsBio && (
+    (portraitUrl || info?.rwsBio) && (
       <section class="rws-card">
-        {info.rwsHeading && <p class="rws-eyebrow">{info.rwsHeading}</p>}
-        {info.rwsBio.split(/\n\s*\n/).map((paragraph) => (
-          <p class="body-text">{paragraph}</p>
-        ))}
-        {info.rwsSourceUrl && (
-          <p class="rws-source">
-            —{' '}
-            <a href={info.rwsSourceUrl} target="_blank" rel="noopener noreferrer">
-              {info.rwsSourceLabel || 'Royal Watercolour Society'}
-            </a>
-          </p>
+        {portraitUrl && (
+          <div class="portrait">
+            <img src={portraitUrl} alt="John Duffin in his studio" />
+          </div>
         )}
+        <div class="rws-text">
+          {info?.rwsHeading && <p class="rws-eyebrow">{info.rwsHeading}</p>}
+          {info?.rwsBio?.split(/\n\s*\n/).map((paragraph) => <p class="body-text">{paragraph}</p>)}
+          {info?.rwsSourceUrl && (
+            <p class="rws-source">
+              —{' '}
+              <a href={info.rwsSourceUrl} target="_blank" rel="noopener noreferrer">
+                {info.rwsSourceLabel || 'Royal Watercolour Society'}
+              </a>
+            </p>
+          )}
+        </div>
       </section>
     )
   }
@@ -97,12 +103,32 @@ const sections: {title: string; entries?: YearEntry[]}[] = [
   }
 
   .rws-card {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 2rem;
     border: 1px solid var(--line);
     border-top: 3px solid var(--accent);
     padding: 1.75rem 2rem;
     margin-bottom: 3rem;
-    background: #fff;
-    max-width: 42rem;
+    background: var(--surface);
+    max-width: 52rem;
+  }
+
+  .portrait img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+  }
+
+  @media (max-width: 640px) {
+    .rws-card {
+      grid-template-columns: 1fr;
+    }
+
+    .portrait {
+      max-width: 220px;
+    }
   }
 
   .rws-eyebrow {

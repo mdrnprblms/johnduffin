@@ -20,6 +20,12 @@ export default defineType({
   type: 'document',
   fields: [
     defineField({
+      name: 'portrait',
+      title: 'Portrait photo',
+      type: 'image',
+      options: {hotspot: true},
+    }),
+    defineField({
       name: 'rwsHeading',
       title: 'RWS card heading',
       description: 'e.g. "Elected ARWS 2021 & RWS 2024"',

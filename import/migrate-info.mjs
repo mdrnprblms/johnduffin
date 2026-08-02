@@ -4,13 +4,15 @@
 // Usage:
 //   node --env-file=.env migrate-info.mjs
 import {createClient} from '@sanity/client'
-import {readFile} from 'node:fs/promises'
+import {createReadStream} from 'node:fs'
+import {readFile, stat} from 'node:fs/promises'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
 const DATA_PATH = path.join(ROOT, 'output', 'info.json')
+const PORTRAIT_PATH = path.join(ROOT, 'output', 'portrait.jpg')
 
 const {SANITY_PROJECT_ID, SANITY_DATASET, SANITY_API_TOKEN} = process.env
 if (!SANITY_PROJECT_ID || !SANITY_API_TOKEN) {
@@ -33,6 +35,16 @@ async function main() {
     _id: 'artistInfo',
     _type: 'artistInfo',
     ...data,
+  }
+
+  try {
+    await stat(PORTRAIT_PATH)
+    const asset = await client.assets.upload('image', createReadStream(PORTRAIT_PATH), {
+      filename: 'portrait.jpg',
+    })
+    doc.portrait = {_type: 'image', asset: {_type: 'reference', _ref: asset._id}}
+  } catch {
+    console.warn(`  SKIP portrait (no file at ${PORTRAIT_PATH})`)
   }
 
   await client.createOrReplace(doc)
