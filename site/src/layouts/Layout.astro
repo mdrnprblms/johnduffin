@@ -40,6 +40,9 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
     --line: #e4e2dd;
     --bg: #fdfcfa;
     --accent: #8a2b1d;
+    --font-body: Futura, 'Century Gothic', 'Futura PT', 'Helvetica Neue', Arial, sans-serif;
+    --font-title: 'Futura Bold Condensed', 'Futura Condensed Bold', 'Futura Condensed', Futura, 'Helvetica Neue', Arial, sans-serif;
+    --tracking: -0.05em;
     font-synthesis: none;
   }
 
@@ -62,16 +65,18 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
   body {
     background: var(--bg);
     color: var(--ink);
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: var(--font-body);
     line-height: 1.45;
-    letter-spacing: -0.012em;
+    letter-spacing: var(--tracking);
     -webkit-font-smoothing: antialiased;
   }
 
   h1,
   h2,
   h3 {
-    letter-spacing: -0.03em;
+    font-family: var(--font-title);
+    font-weight: 700;
+    letter-spacing: var(--tracking);
   }
 
   .site-header {
@@ -85,12 +90,13 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
   }
 
   .brand {
+    font-family: var(--font-title);
     font-size: 1.5rem;
-    letter-spacing: -0.02em;
+    letter-spacing: var(--tracking);
     text-transform: uppercase;
     color: var(--ink);
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 700;
   }
 
   .site-header nav {
@@ -103,7 +109,7 @@ const {title, description = 'John Duffin — paintings, prints, pastels, waterco
     text-decoration: none;
     text-transform: uppercase;
     font-size: 0.85rem;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--tracking);
   }
 
   .site-header nav a:hover,
