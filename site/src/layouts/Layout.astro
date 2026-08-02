@@ -12,6 +12,20 @@ const {
   description = 'John Duffin — paintings, prints, pastels, watercolours and drawings.',
   fullBleed = false,
 } = Astro.props
+
+// Self-hosted: phones don't ship Futura, so the title face has to travel with
+// the page. Scoped <style> is hoisted into a bundle, so this goes out inline to
+// keep the URLs base-relative.
+const titleFontWoff2 = withBase('/fonts/futura-condensed-bold.woff2')
+const titleFontOtf = withBase('/fonts/futura-condensed-bold.otf')
+const titleFontFace = `@font-face {
+  font-family: 'Futura Condensed Bold';
+  src: url('${titleFontWoff2}') format('woff2'),
+       url('${titleFontOtf}') format('opentype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}`
 ---
 
 <!doctype html>
@@ -21,6 +35,14 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <title>{title} · John Duffin</title>
+    <link
+      rel="preload"
+      href={titleFontWoff2}
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <style is:inline set:html={titleFontFace}></style>
   </head>
   <body>
     <div class="noise" aria-hidden="true"></div>
@@ -50,7 +72,7 @@ const {
     --line: #4d4d4d;
     --accent: #ffffff;
     --font-body: Futura, 'Century Gothic', 'Futura PT', 'Helvetica Neue', Arial, sans-serif;
-    --font-title: 'Futura Bold Condensed', 'Futura Condensed Bold', 'Futura Condensed', Futura, 'Helvetica Neue', Arial, sans-serif;
+    --font-title: 'Futura Condensed Bold', 'Futura Bold Condensed', 'Futura Condensed', Futura, 'Helvetica Neue', Arial, sans-serif;
     --tracking: -0.05em;
     font-synthesis: none;
   }

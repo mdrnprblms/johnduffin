@@ -2,13 +2,21 @@
 import Layout from '../layouts/Layout.astro'
 import {withBase} from '../lib/paths'
 
+// `c_limit` caps at the source, so this returns the artwork at its native
+// 1240x1890 — it's a portrait scan, hence the tall hero.
 const HERO_IMAGE_URL =
-  'https://static-assets.artlogic.net/w_1200,c_limit,f_auto,fl_lossy,q_auto/artlogicstorage/bg/images/view/0403b41a4d3dafe2b2bf17dc1df29f10/banksidegallery-john-duffin-rws-re-thames-bridges-east-sunrise.jpg'
+  'https://static-assets.artlogic.net/w_2400,c_limit,f_auto,fl_lossy,q_auto/artlogicstorage/bg/images/view/0403b41a4d3dafe2b2bf17dc1df29f10/banksidegallery-john-duffin-rws-re-thames-bridges-east-sunrise.jpg'
 ---
 
 <Layout title="Home" fullBleed>
   <div class="hero">
-    <div class="hero-image" style={`background-image: url(${HERO_IMAGE_URL})`}></div>
+    <img
+      class="hero-image"
+      src={HERO_IMAGE_URL}
+      width="1240"
+      height="1890"
+      alt="Thames Bridges East, Sunrise — watercolour by John Duffin"
+    />
     <div class="links">
       <a class="button" href={withBase('/portfolio')}>Work</a>
     </div>
@@ -18,20 +26,24 @@ const HERO_IMAGE_URL =
 <style>
   .hero {
     position: relative;
-    flex: 1;
-    display: flex;
   }
 
+  /* Full screen width, natural height — the whole painting stays visible,
+     even though that pushes it past the fold. */
   .hero-image {
-    flex: 1;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
+    display: block;
+    width: 100%;
+    height: auto;
   }
 
+  /* Centred in the screenful of image that's visible on load, rather than the
+     midpoint of the image itself, which would sit well below the fold. */
   .links {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: min(100%, calc(100svh - 11rem));
     display: flex;
     align-items: center;
     justify-content: center;
