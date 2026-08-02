@@ -1,6 +1,24 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import HeroCarousel from '../components/HeroCarousel.astro'
 import {withBase} from '../lib/paths'
+import {getAllArtworks, type Artwork} from '../lib/sanity'
+
+const artworks = await getAllArtworks()
+const withImages = artworks.filter((a) => a.image)
+
+// Deterministic-per-build shuffle so the homepage doesn't always open on
+// the same handful of pieces.
+function shuffle(list: Artwork[]): Artwork[] {
+  const copy = [...list]
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+  return copy
+}
+
+const featured = shuffle(withImages).slice(0, 10)
 ---
 
 <Layout title="Home">
@@ -11,12 +29,14 @@ import {withBase} from '../lib/paths'
       <a class="button" href={withBase('/portfolio')}>View the work</a>
     </div>
   </section>
+
+  <HeroCarousel artworks={featured} />
 </Layout>
 
 <style>
   .hero {
     text-align: center;
-    padding: 4rem 0;
+    padding: 4rem 0 0;
   }
 
   .hero h1 {

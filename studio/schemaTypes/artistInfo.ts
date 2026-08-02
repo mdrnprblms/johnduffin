@@ -20,6 +20,30 @@ export default defineType({
   type: 'document',
   fields: [
     defineField({
+      name: 'rwsHeading',
+      title: 'RWS card heading',
+      description: 'e.g. "Elected ARWS 2021 & RWS 2024"',
+      type: 'string',
+    }),
+    defineField({
+      name: 'rwsBio',
+      title: 'RWS biography',
+      description: 'Paragraphs separated by blank lines.',
+      type: 'text',
+      rows: 8,
+    }),
+    defineField({
+      name: 'rwsSourceLabel',
+      title: 'RWS source label',
+      type: 'string',
+      initialValue: 'Royal Watercolour Society',
+    }),
+    defineField({
+      name: 'rwsSourceUrl',
+      title: 'RWS source URL',
+      type: 'url',
+    }),
+    defineField({
       name: 'bioTimeline',
       title: 'Biography / timeline',
       type: 'array',

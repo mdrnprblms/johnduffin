@@ -1,0 +1,165 @@
+---
+import Layout from '../layouts/Layout.astro'
+import {getArtistInfo} from '../lib/sanity'
+
+const info = await getArtistInfo()
+const email = info?.contactEmail || 'jduffin66@yahoo.co.uk'
+
+// FormSubmit.co relays the POST straight to this address by email — no
+// account or API key needed, just a one-time confirmation click on the
+// first submission. `_next` has to be absolute for FormSubmit's redirect.
+const formAction = `https://formsubmit.co/${email}`
+const redirectTo = `https://mdrnprblms.github.io/johnduffin/contact?sent=true`
+---
+
+<Layout title="Contact" description="Commission enquiries and contact details for John Duffin.">
+  <h1>Contact</h1>
+
+  {
+    info?.commissionsText && (
+      <section class="block">
+        <h2>Commissions</h2>
+        <p class="body-text">{info.commissionsText}</p>
+      </section>
+    )
+  }
+
+  <section class="block">
+    <h2>Get in touch</h2>
+    <p class="body-text">
+      {email && (
+        <>
+          <a href={`mailto:${email}`}>{email}</a>
+          <br />
+        </>
+      )}
+      {info?.contactPhone}
+    </p>
+
+    <p class="sent-notice" data-sent-notice hidden>
+      Thanks — your message has been sent. John will get back to you as soon as he can.
+    </p>
+
+    <form class="contact-form" action={formAction} method="POST" data-contact-form>
+      <input type="hidden" name="_subject" value="New enquiry from johnduffin.co.uk" />
+      <input type="hidden" name="_next" value={redirectTo} />
+      <input type="hidden" name="_template" value="table" />
+      <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off" />
+
+      <label>
+        Name
+        <input type="text" name="name" required />
+      </label>
+      <label>
+        Email
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Message
+        <textarea name="message" rows="6" required></textarea>
+      </label>
+      <button type="submit">Send</button>
+    </form>
+  </section>
+</Layout>
+
+<script>
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('sent') === 'true') {
+    document.querySelector<HTMLElement>('[data-sent-notice]')?.removeAttribute('hidden')
+    document.querySelector<HTMLElement>('[data-contact-form]')?.setAttribute('hidden', '')
+  }
+</script>
+
+<style>
+  h1 {
+    margin: 0 0 2rem;
+  }
+
+  .block {
+    margin-bottom: 2.5rem;
+  }
+
+  .block:last-child {
+    max-width: 32rem;
+  }
+
+  h2 {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking);
+    color: var(--accent);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .body-text {
+    line-height: 1.7;
+    color: var(--ink);
+    max-width: 40rem;
+  }
+
+  .sent-notice {
+    background: #f1efe9;
+    border-left: 3px solid var(--accent);
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    color: var(--ink);
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+
+  .contact-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking);
+    color: var(--muted);
+  }
+
+  .contact-form input[type='text'],
+  .contact-form input[type='email'],
+  .contact-form textarea {
+    font: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--ink);
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 0.65rem 0.75rem;
+    resize: vertical;
+  }
+
+  .contact-form input:focus,
+  .contact-form textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .contact-form button {
+    align-self: flex-start;
+    font: inherit;
+    font-size: 0.85rem;
+    letter-spacing: var(--tracking);
+    text-transform: uppercase;
+    padding: 0.75rem 2rem;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  .contact-form button:hover {
+    background: var(--accent);
+  }
+</style>

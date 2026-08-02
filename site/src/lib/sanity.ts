@@ -84,6 +84,10 @@ export interface YearEntry {
 }
 
 export interface ArtistInfo {
+  rwsHeading?: string
+  rwsBio?: string
+  rwsSourceLabel?: string
+  rwsSourceUrl?: string
   bioTimeline?: YearEntry[]
   awards?: YearEntry[]
   collections?: string[]

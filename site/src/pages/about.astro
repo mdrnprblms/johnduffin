@@ -18,6 +18,25 @@ const sections: {title: string; entries?: YearEntry[]}[] = [
   <h1>About</h1>
 
   {
+    info?.rwsBio && (
+      <section class="rws-card">
+        {info.rwsHeading && <p class="rws-eyebrow">{info.rwsHeading}</p>}
+        {info.rwsBio.split(/\n\s*\n/).map((paragraph) => (
+          <p class="body-text">{paragraph}</p>
+        ))}
+        {info.rwsSourceUrl && (
+          <p class="rws-source">
+            —{' '}
+            <a href={info.rwsSourceUrl} target="_blank" rel="noopener noreferrer">
+              {info.rwsSourceLabel || 'Royal Watercolour Society'}
+            </a>
+          </p>
+        )}
+      </section>
+    )
+  }
+
+  {
     sections.map(
       (section) =>
         section.entries &&
@@ -51,32 +70,6 @@ const sections: {title: string; entries?: YearEntry[]}[] = [
   }
 
   {
-    info?.commissionsText && (
-      <section class="block">
-        <h2>Commissions</h2>
-        <p class="body-text">{info.commissionsText}</p>
-      </section>
-    )
-  }
-
-  {
-    (info?.contactEmail || info?.contactPhone) && (
-      <section class="block">
-        <h2>Contact</h2>
-        <p class="body-text">
-          {info?.contactEmail && (
-            <>
-              <a href={`mailto:${info.contactEmail}`}>{info.contactEmail}</a>
-              <br />
-            </>
-          )}
-          {info?.contactPhone}
-        </p>
-      </section>
-    )
-  }
-
-  {
     info?.links && info.links.length > 0 && (
       <section class="block">
         <h2>Links</h2>
@@ -101,6 +94,49 @@ const sections: {title: string; entries?: YearEntry[]}[] = [
 
   .block {
     margin-bottom: 2.5rem;
+  }
+
+  .rws-card {
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--accent);
+    padding: 1.75rem 2rem;
+    margin-bottom: 3rem;
+    background: #fff;
+    max-width: 42rem;
+  }
+
+  .rws-eyebrow {
+    margin: 0 0 1rem;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: var(--tracking);
+    color: var(--accent);
+    font-family: var(--font-title);
+    font-weight: 700;
+  }
+
+  .rws-card .body-text {
+    max-width: none;
+    margin: 0 0 1rem;
+  }
+
+  .rws-card .body-text:last-of-type {
+    margin-bottom: 0;
+  }
+
+  .rws-source {
+    margin: 1.25rem 0 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .rws-source a {
+    color: var(--muted);
+    text-decoration: underline;
+  }
+
+  .rws-source a:hover {
+    color: var(--accent);
   }
 
   h2 {

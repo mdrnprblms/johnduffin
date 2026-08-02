@@ -1,0 +1,277 @@
+---
+import {urlFor, type Artwork} from '../lib/sanity'
+
+interface Props {
+  artworks: Artwork[]
+}
+
+const {artworks} = Astro.props
+---
+
+{
+  artworks.length > 0 && (
+    <div class="carousel" data-carousel>
+      <div class="frame">
+        {artworks.map((artwork, i) => (
+          <button
+            type="button"
+            class:list={['slide', {active: i === 0}]}
+            data-slide
+            data-index={i}
+            data-highres={urlFor(artwork.image).width(1000).fit('max').auto('format').url()}
+            aria-label={`View ${artwork.title} full size`}
+          >
+            <img
+              src={urlFor(artwork.image).width(900).fit('max').auto('format').url()}
+              alt={artwork.title}
+              loading={i === 0 ? 'eager' : 'lazy'}
+            />
+          </button>
+        ))}
+      </div>
+
+      <div class="dots" role="tablist" aria-label="Choose image">
+        {artworks.map((_, i) => (
+          <button
+            type="button"
+            class:list={['dot', {active: i === 0}]}
+            data-dot
+            data-index={i}
+            aria-label={`Go to image ${i + 1}`}
+          />
+        ))}
+      </div>
+
+      <div class="lightbox" data-lightbox hidden>
+        <button type="button" class="lb-close" data-lb-close aria-label="Close">
+          &times;
+        </button>
+        <button type="button" class="lb-arrow lb-prev" data-lb-prev aria-label="Previous">
+          &larr;
+        </button>
+        <button type="button" class="lb-arrow lb-next" data-lb-next aria-label="Next">
+          &rarr;
+        </button>
+        <figure>
+          <img data-lb-image src="" alt="" />
+          <figcaption data-lb-caption />
+        </figure>
+      </div>
+    </div>
+  )
+}
+
+<script>
+  function initCarousel(root: HTMLElement) {
+    const slides = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-slide]'))
+    const dots = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-dot]'))
+    const lightbox = root.querySelector<HTMLElement>('[data-lightbox]')
+    const lbImage = root.querySelector<HTMLImageElement>('[data-lb-image]')
+    const lbCaption = root.querySelector<HTMLElement>('[data-lb-caption]')
+    if (!slides.length || !lightbox || !lbImage || !lbCaption) return
+
+    const highRes = slides.map((slide) => slide.dataset.highres || slide.querySelector('img')?.getAttribute('src') || '')
+    const captions = slides.map((slide) => slide.querySelector('img')?.alt || '')
+
+    let current = 0
+    let timer: ReturnType<typeof setInterval> | null = null
+
+    function show(index: number) {
+      current = (index + slides.length) % slides.length
+      slides.forEach((s, i) => s.classList.toggle('active', i === current))
+      dots.forEach((d, i) => d.classList.toggle('active', i === current))
+    }
+
+    function start() {
+      stop()
+      timer = setInterval(() => show(current + 1), 5000)
+    }
+
+    function stop() {
+      if (timer) clearInterval(timer)
+      timer = null
+    }
+
+    function openLightbox(index: number) {
+      show(index)
+      lbImage.src = highRes[index]
+      lbImage.alt = captions[index]
+      lbCaption.textContent = captions[index]
+      lightbox.hidden = false
+      stop()
+    }
+
+    function closeLightbox() {
+      lightbox.hidden = true
+      start()
+    }
+
+    function step(delta: number) {
+      show(current + delta)
+      lbImage.src = highRes[current]
+      lbImage.alt = captions[current]
+      lbCaption.textContent = captions[current]
+    }
+
+    slides.forEach((slide, i) => slide.addEventListener('click', () => openLightbox(i)))
+    dots.forEach((dot, i) =>
+      dot.addEventListener('click', () => {
+        show(i)
+        start()
+      }),
+    )
+
+    root.querySelector('[data-lb-close]')?.addEventListener('click', closeLightbox)
+    root.querySelector('[data-lb-prev]')?.addEventListener('click', () => step(-1))
+    root.querySelector('[data-lb-next]')?.addEventListener('click', () => step(1))
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) closeLightbox()
+    })
+    document.addEventListener('keydown', (e) => {
+      if (lightbox.hidden) return
+      if (e.key === 'Escape') closeLightbox()
+      if (e.key === 'ArrowLeft') step(-1)
+      if (e.key === 'ArrowRight') step(1)
+    })
+
+    show(0)
+    start()
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-carousel]').forEach(initCarousel)
+</script>
+
+<style>
+  .carousel {
+    max-width: 720px;
+    margin: 2.5rem auto 0;
+  }
+
+  .frame {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: #f1efe9;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    pointer-events: none;
+  }
+
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    border: none;
+    padding: 0;
+    background: var(--line);
+    cursor: pointer;
+  }
+
+  .dot.active {
+    background: var(--accent);
+  }
+
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgb(0 0 0 / 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .lightbox figure {
+    margin: 0;
+    max-width: min(90vw, 1400px);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .lightbox img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    display: block;
+  }
+
+  .lightbox figcaption {
+    color: #eee;
+    font-size: 0.85rem;
+    letter-spacing: var(--tracking);
+    text-align: center;
+  }
+
+  .lb-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    font-size: 2rem;
+    line-height: 1;
+    color: #fff;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .lb-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    color: #fff;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 1rem;
+  }
+
+  .lb-prev {
+    left: 0.5rem;
+  }
+
+  .lb-next {
+    right: 0.5rem;
+  }
+
+  @media (max-width: 600px) {
+    .frame {
+      aspect-ratio: 1 / 1;
+    }
+  }
+</style>
