@@ -22,15 +22,13 @@ const featured = shuffle(withImages).slice(0, 10)
 ---
 
 <Layout title="Home">
+    <HeroCarousel artworks={featured} />
   <section class="hero">
-    <h1>John Duffin</h1>
-    <p>Paintings, prints, pastels, watercolours and drawings.</p>
     <div class="links">
       <a class="button" href={withBase('/portfolio')}>View the work</a>
     </div>
   </section>
 
-  <HeroCarousel artworks={featured} />
 </Layout>
 
 <style>
