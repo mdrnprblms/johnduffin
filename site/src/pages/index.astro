@@ -36,19 +36,29 @@ const HERO_IMAGE_URL =
     height: auto;
   }
 
-  /* Centred in the screenful of image that's visible on load, rather than the
-     midpoint of the image itself, which would sit well below the fold. */
+  /* Pinned to the viewport, not the page: the hero is taller than the screen,
+     so anything in flow would scroll away as you move down the painting. */
   .links {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: min(100%, calc(100svh - 11rem));
+    /* svh, not vh/dvh: a constant height means the button holds its spot on
+       screen even as a phone's address bar collapses and expands. */
+    height: 100vh;
+    height: 100svh;
+    z-index: 2;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 1rem;
     flex-wrap: wrap;
+    /* Only the button itself should swallow taps. */
+    pointer-events: none;
+  }
+
+  .links > * {
+    pointer-events: auto;
   }
 
   .button {
