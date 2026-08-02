@@ -2,10 +2,11 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "astro-site",
+      "name": "astro-site-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "site", "run", "preview", "--", "--host"],
-      "port": 4321
+      "runtimeArgs": ["--prefix", "site", "run", "dev", "--", "--host"],
+      "port": 4322,
+      "autoPort": true
     }
   ]
 }

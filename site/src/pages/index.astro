@@ -7,29 +7,33 @@ const HERO_IMAGE_URL =
 ---
 
 <Layout title="Home" fullBleed>
-  <div class="hero-image" style={`background-image: url(${HERO_IMAGE_URL})`}></div>
-  <section class="hero">
+  <div class="hero">
+    <div class="hero-image" style={`background-image: url(${HERO_IMAGE_URL})`}></div>
     <div class="links">
       <a class="button" href={withBase('/portfolio')}>Work</a>
     </div>
-  </section>
+  </div>
 </Layout>
 
 <style>
+  .hero {
+    position: relative;
+    flex: 1;
+    display: flex;
+  }
+
   .hero-image {
     flex: 1;
-    min-height: 60vh;
-    background-size: cover;
+    background-size: contain;
+    background-repeat: no-repeat;
     background-position: center;
   }
 
-  .hero {
-    text-align: center;
-    padding: 2rem;
-  }
-
   .links {
+    position: absolute;
+    inset: 0;
     display: flex;
+    align-items: center;
     justify-content: center;
     gap: 1rem;
     flex-wrap: wrap;
