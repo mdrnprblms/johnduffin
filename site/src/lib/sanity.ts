@@ -77,3 +77,26 @@ export async function getArtworkBySlug(slug: string): Promise<Artwork | null> {
     {slug},
   )
 }
+
+export interface YearEntry {
+  year?: string
+  text: string
+}
+
+export interface ArtistInfo {
+  bioTimeline?: YearEntry[]
+  awards?: YearEntry[]
+  collections?: string[]
+  soloExhibitions?: YearEntry[]
+  groupExhibitions?: YearEntry[]
+  publications?: YearEntry[]
+  televisionRadio?: YearEntry[]
+  commissionsText?: string
+  contactEmail?: string
+  contactPhone?: string
+  links?: {label: string; url: string}[]
+}
+
+export async function getArtistInfo(): Promise<ArtistInfo | null> {
+  return sanityClient.fetch(`*[_type == "artistInfo"][0]`)
+}

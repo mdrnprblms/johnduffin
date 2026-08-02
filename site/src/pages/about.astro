@@ -1,0 +1,169 @@
+---
+import Layout from '../layouts/Layout.astro'
+import {getArtistInfo, type YearEntry} from '../lib/sanity'
+
+const info = await getArtistInfo()
+
+const sections: {title: string; entries?: YearEntry[]}[] = [
+  {title: 'Biography', entries: info?.bioTimeline},
+  {title: 'Awards', entries: info?.awards},
+  {title: 'Solo exhibitions', entries: info?.soloExhibitions},
+  {title: 'Selected group exhibitions', entries: info?.groupExhibitions},
+  {title: 'Publications', entries: info?.publications},
+  {title: 'Television and radio', entries: info?.televisionRadio},
+]
+---
+
+<Layout title="About" description="John Duffin — biography, exhibitions and awards.">
+  <h1>About</h1>
+
+  {
+    sections.map(
+      (section) =>
+        section.entries &&
+        section.entries.length > 0 && (
+          <section class="block">
+            <h2>{section.title}</h2>
+            <dl class="entries">
+              {section.entries.map((entry) => (
+                <div class="row">
+                  <dt>{entry.year}</dt>
+                  <dd>{entry.text}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        ),
+    )
+  }
+
+  {
+    info?.collections && info.collections.length > 0 && (
+      <section class="block">
+        <h2>Collections</h2>
+        <ul class="plain">
+          {info.collections.map((c) => (
+            <li>{c}</li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {
+    info?.commissionsText && (
+      <section class="block">
+        <h2>Commissions</h2>
+        <p class="body-text">{info.commissionsText}</p>
+      </section>
+    )
+  }
+
+  {
+    (info?.contactEmail || info?.contactPhone) && (
+      <section class="block">
+        <h2>Contact</h2>
+        <p class="body-text">
+          {info?.contactEmail && (
+            <>
+              <a href={`mailto:${info.contactEmail}`}>{info.contactEmail}</a>
+              <br />
+            </>
+          )}
+          {info?.contactPhone}
+        </p>
+      </section>
+    )
+  }
+
+  {
+    info?.links && info.links.length > 0 && (
+      <section class="block">
+        <h2>Links</h2>
+        <ul class="plain">
+          {info.links.map((l) => (
+            <li>
+              <a href={l.url} target="_blank" rel="noopener noreferrer">
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</Layout>
+
+<style>
+  h1 {
+    margin: 0 0 2rem;
+  }
+
+  .block {
+    margin-bottom: 2.5rem;
+  }
+
+  h2 {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking);
+    color: var(--accent);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .entries {
+    margin: 0;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 6rem 1fr;
+    gap: 1rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .row:last-child {
+    border-bottom: none;
+  }
+
+  dt {
+    color: var(--muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  dd {
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 600px) {
+    .row {
+      grid-template-columns: 4.5rem 1fr;
+    }
+  }
+
+  .plain {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .plain li {
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .plain li:last-child {
+    border-bottom: none;
+  }
+
+  .body-text {
+    line-height: 1.7;
+    color: var(--ink);
+    max-width: 40rem;
+  }
+</style>
