@@ -8,8 +8,7 @@ import {withBase} from '../lib/paths'
     <h1>John Duffin</h1>
     <p>Paintings, prints, pastels, watercolours and drawings.</p>
     <div class="links">
-      <a class="button" href={withBase('/portfolio')}>Browse the catalogue</a>
-      <a class="button secondary" href={withBase('/portfolio?for-sale=1')}>See what's for sale</a>
+      <a class="button" href={withBase('/portfolio')}>View the work</a>
     </div>
   </section>
 </Layout>
@@ -46,11 +45,5 @@ import {withBase} from '../lib/paths'
     border-radius: 2px;
     letter-spacing: -0.01em;
     font-size: 0.9rem;
-  }
-
-  .button.secondary {
-    background: transparent;
-    color: var(--ink);
-    border: 1px solid var(--line);
   }
 </style>

@@ -6,9 +6,10 @@ export default defineConfig({
   output: 'static',
   site: 'https://mdrnprblms.github.io',
   base: '/johnduffin',
-  // The dedicated for-sale page is now a toggle on the single catalogue page.
-  // Redirect targets are emitted verbatim, so `base` has to be spelled out.
+  // The dedicated for-sale page is gone — the single catalogue page now
+  // defaults to showing only work that's for sale. Redirect targets are
+  // emitted verbatim, so `base` has to be spelled out.
   redirects: {
-    '/for-sale': '/johnduffin/portfolio?for-sale=1',
+    '/for-sale': '/johnduffin/portfolio',
   },
 });
